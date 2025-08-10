@@ -114,39 +114,43 @@ export const updateForm = async (req, res) => {
 
 
 // Upload image
-export const uploadImage = (req, res) => { 
-  if (!req.file) {
-    return res.status(400).json({ message: "No file uploaded" });
-  }
-
-  try {
-    if (!gfs) {
-      if (!mongoose.connection.db) {
-        return res.status(500).json({ message: "MongoDB connection not ready" });
-      }
-      gfs = new GridFSBucket(mongoose.connection.db, { bucketName: "uploads" });
+// Upload image
+export const uploadImage = (req, res) => {
+    // Ensure the file exists, as Multer is middleware
+    if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
     }
 
+    // Check if gfs is initialized
+    if (!gfs) {
+        return res.status(500).json({ message: "MongoDB connection or GridFS is not ready." });
+    }
+    
+    // Create the upload stream
     const uploadStream = gfs.openUploadStream(req.file.originalname, {
-      contentType: req.file.mimetype,
+        contentType: req.file.mimetype,
     });
 
     const fileId = uploadStream.id;
 
-    uploadStream.on('error', (error) => {
-      res.status(500).json({ message: `Upload Error: ${error.message}` });
+    // Listen for the 'finish' event before piping
+    uploadStream.once('finish', () => {
+        // Success: Return the URL to the newly uploaded image.
+        res.status(200).json({ imageUrl: `/api/forms/image/${fileId}` });
     });
 
-    uploadStream.on('finish', () => {
-      res.status(200).json({ imageUrl: `/api/forms/image/${fileId}` });
+    // Listen for the 'error' event before piping
+    uploadStream.once('error', (error) => {
+        console.error("GridFS Upload Stream Error:", error);
+        // Ensure no multiple responses are sent
+        if (!res.headersSent) {
+            res.status(500).json({ message: `Upload Error: ${error.message}` });
+        }
     });
 
+    // Write the buffer to the stream and end it.
+    // This is a synchronous operation for the buffer, which makes it reliable.
     uploadStream.end(req.file.buffer);
-    
-  } catch (error) {
-    console.error("Error in uploadImage:", error);
-    res.status(500).json({ message: error.message || "Server error uploading image." });
-  }
 };
 
 // Get image by ID

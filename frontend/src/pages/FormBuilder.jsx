@@ -1,14 +1,41 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Plus, Trash2, Copy, Image as ImageIcon, FileText, X, AlignLeft, List, Type, BarChart2, Save, ArrowLeft } from 'lucide-react';
+import { Plus, Trash2, Copy, Image as ImageIcon, X, List, Type, BarChart2, Save, ArrowLeft } from 'lucide-react';
 
-const API_BASE_URL = "http://localhost:5000";
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 // UPDATED: Helper to generate a unique 24-character hexadecimal ID string
 // This is compatible with MongoDB's ObjectId casting.
 const generateUniqueId = () => {
   return Array(24).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('');
 };
+
+const uploadImageToServer = async (file) => {
+  const formData = new FormData();
+  formData.append("image", file);  // key must match multer single('image')
+
+  try {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`${API_BASE_URL}/api/forms/upload`, {
+      method: "POST",
+      body: formData,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        // Do NOT set Content-Type, browser does it automatically
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error("Image upload failed");
+    }
+    const data = await res.json();
+    return data.imageUrl; // backend returns URL path to image
+  } catch (err) {
+    console.error("Error uploading image:", err);
+    return null;
+  }
+};
+
 
 // Helper component for Image Uploading (no changes needed here)
 const ImageUploader = ({ imageUrl, onUpload, onRemove }) => {
@@ -108,7 +135,7 @@ const FormBuilder = () => {
           const data = await res.json();
           setFormTitle(data.title);
           setFormDescription(data.description);
-          
+           
           if (data.headerImage) {
             setHeaderImage(data.headerImage);
             setHeaderImagePreview(`${API_BASE_URL}${data.headerImage}`);
@@ -139,7 +166,7 @@ const FormBuilder = () => {
             }
             return newQ;
           }));
-          
+           
           const initialQuestionImagePreviews = {};
           data.questions.forEach(q => {
             if (q.image) {
@@ -191,30 +218,30 @@ const FormBuilder = () => {
   const handleQuestionChange = (_id, field, value) => {
     setQuestions(questions.map(q => {
         if (q._id === _id) {
-            const updatedQ = { ...q, [field]: value };
-            // Special handling for type change to reset/initialize specific fields
-            if (field === 'type' && q.type !== value) {
-                if (value === 'categorize') {
-                    updatedQ.categories = Array.isArray(q.categories) ? q.categories : ['Category 1', 'Category 2'];
-                    updatedQ.items = Array.isArray(q.items) ? q.items : ['Item 1', 'Item 2'];
-                    updatedQ.text = undefined; // Clear other type-specific fields
-                    updatedQ.passage = undefined;
-                    updatedQ.subQuestions = undefined;
-                } else if (value === 'cloze') {
-                    updatedQ.text = q.text || 'This is a [BLANK] question.';
-                    updatedQ.categories = undefined;
-                    updatedQ.items = undefined;
-                    updatedQ.passage = undefined;
-                    updatedQ.subQuestions = undefined;
-                } else if (value === 'comprehension') {
-                    updatedQ.passage = q.passage || 'This is a sample passage for comprehension.';
-                    updatedQ.subQuestions = Array.isArray(q.subQuestions) ? q.subQuestions : [{ _id: generateUniqueId(), question: 'What is the main idea?', answer: '' }];
-                    updatedQ.categories = undefined;
-                    updatedQ.items = undefined;
-                    updatedQ.text = undefined;
-                }
-            }
-            return updatedQ;
+          const updatedQ = { ...q, [field]: value };
+          // Special handling for type change to reset/initialize specific fields
+          if (field === 'type' && q.type !== value) {
+              if (value === 'categorize') {
+                  updatedQ.categories = Array.isArray(q.categories) ? q.categories : ['Category 1', 'Category 2'];
+                  updatedQ.items = Array.isArray(q.items) ? q.items : ['Item 1', 'Item 2'];
+                  updatedQ.text = undefined; // Clear other type-specific fields
+                  updatedQ.passage = undefined;
+                  updatedQ.subQuestions = undefined;
+              } else if (value === 'cloze') {
+                  updatedQ.text = q.text || 'This is a [BLANK] question.';
+                  updatedQ.categories = undefined;
+                  updatedQ.items = undefined;
+                  updatedQ.passage = undefined;
+                  updatedQ.subQuestions = undefined;
+              } else if (value === 'comprehension') {
+                  updatedQ.passage = q.passage || 'This is a sample passage for comprehension.';
+                  updatedQ.subQuestions = Array.isArray(q.subQuestions) ? q.subQuestions : [{ _id: generateUniqueId(), question: 'What is the main idea?', answer: '' }];
+                  updatedQ.categories = undefined;
+                  updatedQ.items = undefined;
+                  updatedQ.text = undefined;
+              }
+          }
+          return updatedQ;
         }
         return q;
     }));
@@ -280,7 +307,7 @@ const FormBuilder = () => {
         subQuestions: questionToDuplicate.subQuestions ? questionToDuplicate.subQuestions.map(sq => ({ ...sq, _id: generateUniqueId() })) : undefined,
         image: questionToDuplicate.image instanceof File ? null : questionToDuplicate.image
       };
-      
+       
       const index = questions.findIndex(q => q._id === _id);
       const newQuestionsArray = [...questions];
       newQuestionsArray.splice(index + 1, 0, newDuplicatedQuestion);
@@ -425,7 +452,7 @@ const FormBuilder = () => {
       });
     };
 
-    const safeSubQuestions = Array.isArray(question.subQuestions) ? question.subQuestions : []; 
+    const safeSubQuestions = Array.isArray(question.subQuestions) ? question.subQuestions : [];
     const safeCategories = Array.isArray(question.categories) ? question.categories : [];
     const safeItems = Array.isArray(question.items) ? question.items : [];
 
