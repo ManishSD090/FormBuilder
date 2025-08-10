@@ -32,6 +32,11 @@ app.use(cors({
 
 app.use(express.json());
 
+app.get('/', (req, res) => {
+  res.send('Backend API is live! 🚀');
+});
+
+
 // API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/forms", formRoutes);
