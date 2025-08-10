@@ -7,11 +7,11 @@ const Register = () => {
   const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
+    fullName: "", // ✅ match backend
+    email: "",
+    password: ""
   });
+  
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
