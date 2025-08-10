@@ -7,6 +7,7 @@ const generateToken = (id) => {
 
 export const registerUser = async (req, res) => {
   const { fullName, email, password } = req.body;
+  console.log('Register request body:', req.body);
 
   try {
     let userExists = await User.findOne({ email: email.toLowerCase() });

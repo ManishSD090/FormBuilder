@@ -121,6 +121,9 @@ export const uploadImage = (req, res) => {
 
   try {
     if (!gfs) {
+      if (!mongoose.connection.db) {
+        return res.status(500).json({ message: "MongoDB connection not ready" });
+      }
       gfs = new GridFSBucket(mongoose.connection.db, { bucketName: "uploads" });
     }
 
