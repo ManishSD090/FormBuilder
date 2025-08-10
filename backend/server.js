@@ -14,7 +14,7 @@ const app = express();
 // Allowed frontend origins (local + deployed)
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://form-builder-fftxvbhr-manishsdarge2-gmailcoms-projects.vercel.app"
+  "https://form-builder-ffrxbvthr-manishdarge2-gmailcoms-projects.vercel.app/login
 ];
 
 // CORS setup
