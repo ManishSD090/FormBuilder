@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Eye, Trash2, ArrowLeft } from 'lucide-react'; // Added ArrowLeft for back button
 
-const API_BASE_URL = "http://localhost:5000"; // Your backend API URL
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const FormResponsesList = () => {
   const { formId } = useParams(); // Get the form ID from the URL (e.g., /responses/form/:formId)

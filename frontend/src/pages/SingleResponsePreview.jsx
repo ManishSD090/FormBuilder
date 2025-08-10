@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
-const API_BASE_URL = "http://localhost:5000"; // Your backend API URL
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const SingleResponsePreview = () => {
   const { id: responseId } = useParams(); // Get the response ID from the URL
