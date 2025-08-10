@@ -13,22 +13,27 @@ const app = express();
 
 // Allowed frontend origins (local + deployed)
 const allowedOrigins = [
-  "http://localhost:5173",
-  "https://form-builder-fftxvbhr-manishsdarge2-gmailcoms-projects.vercel.app"
+  "https://form-builder-ffrxbvthr-manishdarge2-gmailcoms-projects.vercel.app",
+  "https://form-builder-git-main-manishdarge2-gmailcoms-projects.vercel.app",
+  "http://localhost:3000"  // if you test locally
 ];
 
 // CORS setup
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
+  origin: function(origin, callback) {
+    console.log('CORS origin:', origin);
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = `The CORS policy for this site does not allow access from the specified Origin: ${origin}`;
+      console.error(msg);
+      return callback(new Error(msg), false);
     }
+    return callback(null, true);
   },
-  credentials: true
+  credentials: true,
 }));
+
 
 app.use(express.json());
 
