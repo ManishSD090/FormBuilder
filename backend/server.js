@@ -11,15 +11,32 @@ connectDB();
 
 const app = express();
 
+// Allowed frontend origins (local + deployed)
+const allowedOrigins = [
+  "http://localhost:5173", // Local development
+  "https://form-builder-seven-cyan.vercel.app" // Deployed frontend on Vercel
+];
+
+// CORS setup
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true
 }));
+
 app.use(express.json());
 
+// API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/forms", formRoutes);
-app.use('/api/responses', responseRoutes);
+app.use("/api/responses", responseRoutes);
 
+// Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
