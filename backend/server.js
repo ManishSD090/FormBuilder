@@ -13,8 +13,7 @@ const app = express();
 
 // Allowed frontend origins (local + deployed)
 const allowedOrigins = [
-  "https://form-builder-ffrxbvthr-manishdarge2-gmailcoms-projects.vercel.app",
-  "https://form-builder-git-main-manishdarge2-gmailcoms-projects.vercel.app",
+  "https:form-builder-seven-cyan.vercel.app",
   "http://localhost:3000"  // if you test locally
 ];
 
