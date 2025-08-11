@@ -403,7 +403,7 @@ const Dashboard = () => {
                       <div className="flex items-center space-x-2">
                          {/* View Form Button */}
                         <a
-                          href={`https://custom-form-builder-3iw1.onrender.com/form/${form._id}`}
+                          href={`https://custom-form-builder-seven.vercel.app/form/${form._id}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           title="View Form"
