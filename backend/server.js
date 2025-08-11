@@ -5,47 +5,57 @@ import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import formRoutes from "./routes/formRoutes.js";
 import responseRoutes from "./routes/responseRoutes.js";
+// import { initGridFS } from "./controllers/formController.js";
+import uploadRoutes from './routes/upload.js';
 
 dotenv.config();
-connectDB();
 
 const app = express();
 
-// Allowed frontend origins (local + deployed)
+// Allowed origins
 const allowedOrigins = [
-  "https:form-builder-seven-cyan.vercel.app",
-  "http://localhost:3000"  // if you test locally
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "http://localhost:3000",
 ];
 
-// CORS setup
-app.use(cors({
-  origin: function(origin, callback) {
-    console.log('CORS origin:', origin);
+const corsOptions = {
+  origin: (origin, callback) => {
     if (!origin) return callback(null, true);
-
     if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = `The CORS policy for this site does not allow access from the specified Origin: ${origin}`;
-      console.error(msg);
-      return callback(new Error(msg), false);
+      return callback(
+        new Error(`CORS policy does not allow origin: ${origin}`),
+        false
+      );
     }
     return callback(null, true);
   },
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  allowedHeaders: "Content-Type,Authorization",
   credentials: true,
-}));
+};
 
-
+app.use(cors(corsOptions));
 app.use(express.json());
+app.use('/api/upload', uploadRoutes);
 
-app.get('/', (req, res) => {
-  res.send('Backend API is live! 🚀');
+// Health check
+app.get("/", (req, res) => {
+  res.send("Backend API is live! 🚀");
 });
 
-
-// API routes
+// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/forms", formRoutes);
 app.use("/api/responses", responseRoutes);
 
-// Start server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+// Start server after DB is connected
+const startServer = async () => {
+  await connectDB(); // ✅ Wait for DB connection
+  // initGridFS(); // ✅ Initialize GridFS after DB connection is ready
+
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+};
+
+startServer();

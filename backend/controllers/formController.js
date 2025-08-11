@@ -1,26 +1,70 @@
 import multer from "multer";
 import mongoose from "mongoose";
-import { GridFSBucket } from "mongodb";
+// import { GridFSBucket } from "mongodb";
 import Form from "../models/Form.js";
 import Response from "../models/Response.js"; // <-- This import is crucial for counting responses
+import { Readable } from 'stream';
 
-let gfs;
-mongoose.connection.once("open", () => {
-  gfs = new GridFSBucket(mongoose.connection.db, { bucketName: "uploads" });
-});
+
+
+
+// Global GridFS variable
+// let gfs;
+
+// export const initGridFS = () => {
+//   if (mongoose.connection.readyState !== 1 || !mongoose.connection.db) {
+//     throw new Error("MongoDB connection not ready yet");
+//   }
+//   gfs = new GridFSBucket(mongoose.connection.db, { bucketName: "uploads" });
+//   console.log("✅ GridFS initialized");
+// };
+
+
+
+// export const getGfs = () => gfs;
+// const grid = getGfs(); // now calls the locally defined function
+
+// REMOVED: Old gfs initialization that only ran once.
+// mongoose.connection.once("open", ...) has been removed.
+
+// ADDED: Robust GridFS Initializer
+// This function initializes GFS if the connection is ready, preventing race conditions.
+// function getGridFS() {
+//   if (!gfs && mongoose.connection.readyState === 1) {
+//     gfs = new GridFSBucket(mongoose.connection.db, { bucketName: "uploads" });
+//     console.log("🔄 GridFS initialized");
+//   }
+//   return gfs;
+// }
+
 
 const storage = multer.memoryStorage();
 export const upload = multer({ storage });
 
 // Create form
+// Replace your existing createForm function with this one
 export const createForm = async (req, res) => {
+  console.log("--- createForm controller initiated ---"); // Log start
+
   try {
     let { title, description, questions, headerImage } = req.body;
 
-    // Ensure questions is parsed if it comes as a string (e.g., from FormData)
+    // 1. Log the raw data received from the frontend
+    console.log("1. Data received in req.body:", req.body);
+
+    // Ensure questions is an array
     if (typeof questions === "string") {
-      questions = JSON.parse(questions);
+      try {
+        questions = JSON.parse(questions);
+        console.log("2. 'questions' field parsed successfully.");
+      } catch (parseError) {
+        console.error("ERROR: Failed to parse 'questions' JSON string.", parseError);
+        // Send an error response immediately if JSON is invalid
+        return res.status(400).json({ message: "Invalid format for questions data." });
+      }
     }
+
+    console.log("3. Attempting to create form in database...");
 
     const form = await Form.create({
       title,
@@ -30,9 +74,14 @@ export const createForm = async (req, res) => {
       createdBy: req.user._id
     });
 
+    console.log("4. Form created successfully in database:", form);
+
     res.status(201).json(form);
+    console.log("5. Sent success response to client.");
+
   } catch (error) {
-    console.error("Error in createForm:", error); // Added console.error for debugging
+    // This will catch any errors from Form.create()
+    console.error("--- ERROR in createForm ---:", error);
     res.status(500).json({ message: error.message || "Server error creating form." });
   }
 };
@@ -113,66 +162,57 @@ export const updateForm = async (req, res) => {
 };
 
 
-// Upload image
-// Upload image
-export const uploadImage = (req, res) => {
-    // Ensure the file exists, as Multer is middleware
-    if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
-    }
+// export const uploadImage = (req, res) => {
+//   const grid = getGfs(); // ✅ Use getter
+//   if (!grid) {
+//     return res.status(500).json({ message: "GridFS is not ready." });
+//   }
+  
+//   if (!req.file) {
+//     return res.status(400).json({ message: "No file uploaded" });
+//   }
 
-    // Check if gfs is initialized
-    if (!gfs) {
-        return res.status(500).json({ message: "MongoDB connection or GridFS is not ready." });
-    }
-    
-    // Create the upload stream
-    const uploadStream = gfs.openUploadStream(req.file.originalname, {
-        contentType: req.file.mimetype,
-    });
+//   const readableStream = new Readable();
+//   readableStream.push(req.file.buffer);
+//   readableStream.push(null);
 
-    const fileId = uploadStream.id;
+//   const uploadStream = grid.openUploadStream(req.file.originalname, {
+//     contentType: req.file.mimetype,
+//   });
 
-    // Listen for the 'finish' event before piping
-    uploadStream.once('finish', () => {
-        // Success: Return the URL to the newly uploaded image.
-        res.status(200).json({ imageUrl: `/api/forms/image/${fileId}` });
-    });
+//   uploadStream.on("finish", () => {
+//     console.log("✅ Upload finished!");
+//     res.status(200).json({ imageUrl: `/api/forms/image/${uploadStream.id}` });
+//   });
 
-    // Listen for the 'error' event before piping
-    uploadStream.once('error', (error) => {
-        console.error("GridFS Upload Stream Error:", error);
-        // Ensure no multiple responses are sent
-        if (!res.headersSent) {
-            res.status(500).json({ message: `Upload Error: ${error.message}` });
-        }
-    });
+//   uploadStream.on("error", (err) => {
+//     console.error("❌ Upload error:", err);
+//     res.status(500).json({ message: err.message });
+//   });
 
-    // Write the buffer to the stream and end it.
-    // This is a synchronous operation for the buffer, which makes it reliable.
-    uploadStream.end(req.file.buffer);
-};
+//   readableStream.pipe(uploadStream);
+// };
 
-// Get image by ID
-export const getImage = async (req, res) => {
-  try {
-    if (!gfs) {
-      gfs = new GridFSBucket(mongoose.connection.db, { bucketName: "uploads" });
-    }
+// export const getImage = async (req, res) => {
+//   try {
+//     const grid = getGfs(); // ✅ Use getter
+//     if (!grid) {
+//       return res.status(500).json({ message: "GridFS is not ready." });
+//     }
 
-    const fileId = new mongoose.Types.ObjectId(req.params.id);
-    const downloadStream = gfs.openDownloadStream(fileId);
+//     const fileId = new mongoose.Types.ObjectId(req.params.id);
+//     const downloadStream = grid.openDownloadStream(fileId);
 
-    downloadStream.on("error", () =>
-      res.status(404).json({ message: "Image not found" })
-    );
+//     downloadStream.on("error", () =>
+//       res.status(404).json({ message: "Image not found" })
+//     );
 
-    downloadStream.pipe(res);
-  } catch (error) {
-    console.error("Error in getImage:", error);
-    res.status(500).json({ message: error.message || "Server error getting image." });
-  }
-};
+//     downloadStream.pipe(res);
+//   } catch (error) {
+//     console.error("Error in getImage:", error);
+//     res.status(500).json({ message: error.message || "Server error getting image." });
+//   }
+// };
 
 // Delete form
 export const deleteForm = async (req, res) => {
