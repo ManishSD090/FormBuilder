@@ -402,11 +402,15 @@ const Dashboard = () => {
                       </span>
                       <div className="flex items-center space-x-2">
                          {/* View Form Button */}
-                        <Link to={`/form/${form._id}`} target="_blank" title="View Form">
-                          <button className="text-gray-400 hover:text-blue-600 transition-colors">
-                            <Eye className="w-5 h-5" />
-                          </button>
-                        </Link>
+                        <a
+                          href={`https://custom-form-builder-3iw1.onrender.com/form/${form._id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="View Form"
+                        >
+                          <Eye className="w-5 h-5" />
+                        </a>
+
                          {/* MODIFIED: View Responses Button in My Forms grid */}
                         <button
                           onClick={() => navigate(`/responses/form/${form._id}`)} // <-- CORRECTED PATH
