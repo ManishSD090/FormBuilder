@@ -14,7 +14,7 @@ import {
   Pencil, 
 } from 'lucide-react';
 
-const API_BASE_URL = 'http://localhost:5000'; // Use environment variable or default to local
+const API = import.meta.env.VITE_API_URL;
 
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -69,7 +69,7 @@ const Dashboard = () => {
           return;
         }
 
-        const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
+        const res = await fetch(`${API}/api/auth/me`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -137,7 +137,7 @@ const Dashboard = () => {
           return; // Exit early if no token
         }
 
-        const res = await fetch(`${API_BASE_URL}/api/forms`, {
+        const res = await fetch(`${API}/api/forms`, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json"
@@ -173,7 +173,7 @@ const Dashboard = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${API_BASE_URL}/api/forms/${formId}`, {
+      const res = await fetch(`${API}/api/forms/${formId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

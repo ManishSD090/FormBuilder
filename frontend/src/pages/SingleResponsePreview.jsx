@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API = import.meta.env.VITE_API_URL;
 
 const SingleResponsePreview = () => {
   const { id: responseId } = useParams(); // Get the response ID from the URL
@@ -19,7 +19,7 @@ const SingleResponsePreview = () => {
           return;
         }
 
-        const res = await fetch(`${API_BASE_URL}/api/responses/${responseId}`, {
+        const res = await fetch(`${API}/api/responses/${responseId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json"

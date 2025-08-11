@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Eye, Trash2, ArrowLeft } from 'lucide-react'; // Added ArrowLeft for back button
 
-const API_BASE_URL = 'http://localhost:5000';
+const API = import.meta.env.VITE_API_URL;
 
 const FormResponsesList = () => {
   const { formId } = useParams(); // Get the form ID from the URL (e.g., /responses/form/:formId)
@@ -23,7 +23,7 @@ const FormResponsesList = () => {
         }
 
         // Fetch all responses for this specific formId
-        const res = await fetch(`${API_BASE_URL}/api/responses/form/${formId}`, {
+        const res = await fetch(`${API}/api/responses/form/${formId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json"
@@ -63,7 +63,7 @@ const FormResponsesList = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${API_BASE_URL}/api/responses/${responseToDeleteId}`, {
+      const res = await fetch(`${API}/api/responses/${responseToDeleteId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { FileText } from 'lucide-react';
 
-const API_BASE_URL = 'http://localhost:5000'; // Use environment variable or default to local
+const API = import.meta.env.VITE_API_URL;
 
 const Register = () => {
   const navigate = useNavigate();
@@ -77,7 +77,7 @@ const Register = () => {
   setIsLoading(true);
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+    const response = await fetch(`${API}/api/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
