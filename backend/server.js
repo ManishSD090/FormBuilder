@@ -14,8 +14,8 @@ const app = express();
 
 // Allowed origins
 const allowedOrigins = [
-  "http://localhost:5173", // local dev
-  "https://custom-form-builder-seven.vercel.app/" // your Vercel frontend
+  "https://custom-form-builder-seven.vercel.app/", // your Vercel frontend
+   "http://localhost:5173"
 ];
 
 const corsOptions = {
