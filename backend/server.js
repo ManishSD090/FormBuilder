@@ -14,7 +14,7 @@ const app = express();
 
 // Allowed origins
 const allowedOrigins = [
-  "https://custom-form-builder-seven.vercel.app/", // your Vercel frontend
+  "https://form-builder-three-gray.vercel.app/", // your Vercel frontend
    "http://localhost:5173"
 ];
 
