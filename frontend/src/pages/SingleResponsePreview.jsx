@@ -139,15 +139,14 @@ const SingleResponsePreview = () => {
         <p className="text-sm text-gray-500 mb-8">Submitted by: <span className="font-semibold">{response.userEmail || 'N/A'}</span> on {new Date(response.createdAt).toLocaleDateString()}</p>
 
         {form.headerImage && (
-          <img src={`${API_BASE_URL}${form.headerImage}`} alt="Form Header" className="w-full h-48 object-cover rounded-t-lg mb-6" />
+          <img src={form.headerImage} alt="Form Header" className="w-full h-48 object-cover rounded-t-lg mb-6" />
         )}
 
         {Array.isArray(form.questions) && form.questions.map((q, index) => (
           <div key={q._id} className="bg-white p-6 mb-4 border border-gray-200 rounded-lg shadow-sm">
             <h3 className="text-xl font-semibold mb-1 text-gray-900">{index + 1}. {q.title}</h3>
             {q.description && <p className="text-gray-500 mb-4">{q.description}</p>}
-            {q.image && <img src={`${API_BASE_URL}${q.image}`} alt="Question visual" className="w-full max-w-sm mx-auto rounded-lg mb-4" />}
-            {renderQuestion(q)}
+            {q.image && <img src={q.image} alt="Question visual" className="w-full max-w-sm mx-auto rounded-lg mb-4" />}            {renderQuestion(q)}
           </div>
         ))}
       </div>
