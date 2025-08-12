@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
+const API = import.meta.env.VITE_API_URL;
+
 // This component renders a preview from localStorage. It does not submit.
 const PreviewPage = () => {
   const [form, setForm] = useState(null);
