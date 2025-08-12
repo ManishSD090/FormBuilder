@@ -36,10 +36,10 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions)); // ✅ handle preflight for all routes
-
+app.options("/*", cors(corsOptions)); // ✅ fixed for Express 5+
 app.use(express.json());
 app.use('/api/upload', uploadRoutes);
+
 
 // Health check
 app.get("/", (req, res) => {
