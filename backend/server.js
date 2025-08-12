@@ -30,16 +30,14 @@ const corsOptions = {
     }
     return callback(null, true);
   },
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   allowedHeaders: "Content-Type,Authorization",
   credentials: true,
 };
 
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions)); // ✅ works with Express 5
 app.use(express.json());
 app.use('/api/upload', uploadRoutes);
-
 
 // Health check
 app.get("/", (req, res) => {

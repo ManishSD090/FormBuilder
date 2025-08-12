@@ -32,7 +32,6 @@ router.put("/:id", protect, updateForm); // <-- ADDED: This handles PUT requests
 // Note: router.route('/:id') groups methods for the same path
 router.route('/:id')
   .get(getFormById)
-  .put(protect, updateForm)
   .delete(protect, deleteForm);
 
 export default router;
