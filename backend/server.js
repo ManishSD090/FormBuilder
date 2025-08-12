@@ -14,12 +14,13 @@ const app = express();
 
 // Allowed origins
 const allowedOrigins = [
-  "https://form-builder-three-gray.vercel.app/", // your Vercel frontend
+  "https://form-builder-three-gray.vercel.app", // your Vercel frontend
    "http://localhost:5173"
 ];
 
 const corsOptions = {
   origin: (origin, callback) => {
+    console.log("CORS Origin:", origin);
     if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) === -1) {
       return callback(
