@@ -11,6 +11,8 @@ import PreviewPage from './pages/PreviewPage';
 import FormResponsesList from './pages/FormResponsesList';
 // FIX: Corrected import name to match the renamed file
 import SingleResponsePreview from './pages/SingleResponsePreview'; 
+console.log("API URL from env:", import.meta.env.VITE_API_URL);
+
 
 const App = () => {
   return (

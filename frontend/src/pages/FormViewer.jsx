@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
-const API_BASE_URL = 'http://localhost:5000';
+const API = import.meta.env.VITE_API_URL;
 
 const FormViewer = () => {
   const { id: formId } = useParams();
@@ -15,7 +15,7 @@ const FormViewer = () => {
   useEffect(() => {
     const fetchForm = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/api/forms/${formId}`);
+        const res = await fetch(`${API}/api/forms/${formId}`);
         if (!res.ok) {
           throw new Error('Form not found or could not be loaded.');
         }
@@ -77,7 +77,7 @@ const FormViewer = () => {
         };
 
         console.log("Payload being sent:", responsePayload);
-      const res = await fetch(`${API_BASE_URL}/api/responses`, {
+      const res = await fetch(`${API}/api/responses`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(responsePayload),
@@ -186,7 +186,7 @@ const FormViewer = () => {
     <div className="bg-gray-100 min-h-screen py-10 px-4">
       <form onSubmit={handleSubmit} className="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-lg">
         {form.headerImage && (
-          <img src={`${API_BASE_URL}${form.headerImage}`} alt="Form Header" className="w-full h-48 object-cover rounded-t-lg mb-6" />
+          <img src={`${API}${form.headerImage}`} alt="Form Header" className="w-full h-48 object-cover rounded-t-lg mb-6" />
         )}
         <h1 className="text-4xl font-bold mb-2">{form.title}</h1>
         <p className="text-gray-600 mb-8">{form.description}</p>
@@ -207,7 +207,7 @@ const FormViewer = () => {
           <div key={q._id || index} className="bg-white p-6 mb-4 border border-gray-200 rounded-lg">
             <h3 className="text-xl font-semibold mb-1">{index + 1}. {q.title}</h3>
             {q.description && <p className="text-gray-500 mb-4">{q.description}</p>}
-            {q.image && <img src={`${API_BASE_URL}${q.image}`} alt="Question visual" className="w-full max-w-sm mx-auto rounded-lg mb-4" />}
+            {q.image && <img src={`${API}${q.image}`} alt="Question visual" className="w-full max-w-sm mx-auto rounded-lg mb-4" />}
             {renderQuestion(q)}
           </div>
         ))}

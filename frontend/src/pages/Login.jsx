@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { FileText } from 'lucide-react';
 
-const API_BASE_URL = 'http://localhost:5000'; // Use environment variable or default to local
+const API = import.meta.env.VITE_API_URL;
+console.log("API URL:", API);
 
 const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -16,7 +17,7 @@ const Login = () => {
   e.preventDefault();
 
   try {
-    const res = await fetch(`${API_BASE_URL}/api/auth/login`, { // <-- Corrected line
+    const res = await fetch(`${API}/api/auth/login`, { // <-- Corrected line
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
