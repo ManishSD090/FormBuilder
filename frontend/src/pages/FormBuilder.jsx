@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Plus, Trash2, Copy, Image as ImageIcon, X, List, Type, BarChart2, Save, ArrowLeft } from 'lucide-react';
 import axios from 'axios'; // Ensure axios is imported
 
-const API_BASE_URL = 'http://localhost:5000';
+const API = import.meta.env.VITE_API_URL;
 
 // This is a self-contained, correct ImageUploader component.
 const ImageUploader = ({ imageUrl, onUpload, onRemove }) => {
@@ -88,7 +88,7 @@ const FormBuilder = () => {
         const token = localStorage.getItem("token");
         if (!token) throw new Error("Authentication token missing. Please log in.");
         
-        const res = await fetch(`${API_BASE_URL}/api/forms/${formId}`, {
+        const res = await fetch(`${API}/api/forms/${formId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         
@@ -279,7 +279,7 @@ const FormBuilder = () => {
         questions: questionsWithUploadedImages,
       };
 
-      const url = formId ? `${API_BASE_URL}/api/forms/${formId}` : `${API_BASE_URL}/api/forms`;
+      const url = formId ? `${API}/api/forms/${formId}` : `${API}/api/forms`;
       const method = formId ? 'PUT' : 'POST';
 
       const res = await fetch(url, {

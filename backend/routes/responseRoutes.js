@@ -3,15 +3,16 @@ import { protect } from '../middleware/authMiddleware.js';
 import {
   submitResponse,
   getResponseById,
-  getResponsesByFormId
+  getResponsesByFormId // Import the new function
 } from '../controllers/responseController.js';
 
 const router = express.Router();
 
-router.post('/', submitResponse);
+router.route('/').post(submitResponse);
 
-// Consolidate routes with the same base path
-router.get('/form/:formId', protect, getResponsesByFormId);
-router.get('/:id', protect, getResponseById);
+// Order matters: More specific routes should come before less specific ones.
+// This ensures '/form/:formId' doesn't get caught by '/:id'
+router.get('/form/:formId', protect, getResponsesByFormId); // Correctly positioned route for list of responses
+router.get('/:id', protect, getResponseById); // Route for a single response by its ID
 
 export default router;
