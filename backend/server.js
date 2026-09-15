@@ -1,6 +1,11 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import dns from "dns";
+
+if (process.env.NODE_ENV !== "production") {
+  dns.setServers(["8.8.8.8", "8.8.4.4"]);
+}
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import formRoutes from "./routes/formRoutes.js";
