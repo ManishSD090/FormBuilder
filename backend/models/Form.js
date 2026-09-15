@@ -1,41 +1,48 @@
 import mongoose from "mongoose";
 
 const subQuestionSchema = new mongoose.Schema({
-  // Mongoose automatically adds a default '_id' field to sub-documents in arrays.
-  // The 'id: String' field here might be redundant if '_id' is used as the primary identifier.
-  // If 'id' is for a custom, non-MongoDB unique identifier, keep it. Otherwise, consider removing.
   id: String, 
   question: String,
-  answer: String // could be multiple lines for options
-}, { /* Removed _id: false */ }); // Mongoose will now generate _id by default
+  answer: String 
+});
 
 const questionSchema = new mongoose.Schema({
-  // Mongoose automatically adds a default '_id' field to documents/sub-documents.
-  // The 'id: String' field here might be redundant if '_id' is used as the primary identifier.
-  // If 'id' is for a custom, non-MongoDB unique identifier, keep it. Otherwise, consider removing.
   id: String, 
-  type: { type: String, enum: ["categorize", "cloze", "comprehension"], required: true },
+  type: { type: String, required: true }, // Removed strict enum to allow all 14 generic types
   title: String,
   description: String,
-  image: String, // URL to question image
+  image: String,
+  
+  // --- NEW GENERIC FIELDS ---
+  required: { type: Boolean, default: false },
+  options: [String], // For multiple_choice, checkboxes, dropdown
+  validation: { type: mongoose.Schema.Types.Mixed },
+  sectionId: { type: String },
+  logic: { type: [mongoose.Schema.Types.Mixed], default: [] }, // Conditional branching rules
 
-  // Categorize specific fields
+  // --- LEGACY FIELDS (Categorize, Cloze, Comprehension) ---
   categories: [String],
   items: [String],
-
-  // Cloze specific fields
-  text: String, // Text with [BLANK] markers
-
-  // Comprehension specific fields
+  text: String, 
   passage: String,
-  subQuestions: [subQuestionSchema] // Each subQuestion will now also get an _id
-}, { /* Removed _id: false */ }); // Mongoose will now generate _id by default
+  subQuestions: [subQuestionSchema] 
+});
 
 const formSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: String,
-  headerImage: String, // URL to header image
-  questions: [questionSchema], // Each question will now get an _id
+  headerImage: String, 
+  
+  // --- NEW FORM STRUCTURE ---
+  settings: { type: mongoose.Schema.Types.Mixed, default: {} },
+  sections: { type: [{
+    id: String,
+    title: String,
+    description: String,
+    order: Number
+  }], default: [] },
+  
+  questions: [questionSchema],
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }
 }, { timestamps: true });
 

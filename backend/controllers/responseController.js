@@ -18,6 +18,31 @@ export const submitResponse = async (req, res) => {
       return res.status(404).json({ message: 'Form not found' });
     }
 
+    // Checkpoint: Is the form still accepting responses?
+    const settings = form.settings || {};
+    if (settings.acceptingResponses === false) {
+      return res.status(403).json({ message: 'This form is no longer accepting responses.' });
+    }
+    if (settings.expiresAt && new Date(settings.expiresAt) < new Date()) {
+      return res.status(403).json({ message: 'This form has expired.' });
+    }
+
+    // Enforce email collection
+    if (settings.collectEmail && !userEmail) {
+      return res.status(400).json({ message: 'Email address is required for this form.' });
+    }
+
+    // Enforce 1 response limit
+    if (settings.limitOneResponse) {
+      if (!userEmail) {
+        return res.status(400).json({ message: 'Sign-in (email) is required to limit responses.' });
+      }
+      const existing = await Response.findOne({ formId, userEmail });
+      if (existing) {
+        return res.status(403).json({ message: 'You have already submitted a response to this form.' });
+      }
+    }
+
     // Checkpoint 4: Found the form, preparing to create response.
     console.log("Step 4: Form found. Creating new response object.");
     const newResponse = new Response({
@@ -70,30 +95,53 @@ export const getResponseById = async (req, res) => {
 
 export const getResponsesByFormId = async (req, res) => {
   try {
-    const { formId } = req.params; // This is the form ID
+    const { formId } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const skip = (page - 1) * limit;
+    const sort = req.query.sort || '-createdAt';
 
     if (!mongoose.Types.ObjectId.isValid(formId)) {
       return res.status(400).json({ message: 'Invalid form ID format.' });
     }
 
-    // Find all responses linked to this formId
-    const responses = await Response.find({ formId: formId })
-                                    .populate({
-                                      path: 'formId', // Populate the form details for each response
-                                      model: 'Form',
-                                      select: 'title description questions headerImage'
-                                    })
-                                    .lean(); // Use .lean() for performance
+    const responses = await Response.find({ formId })
+      .populate({ path: 'formId', model: 'Form', select: 'title description questions headerImage settings' })
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
+      .lean();
 
-    if (!responses || responses.length === 0) {
-      // Return 200 with an empty array if no responses, not 404, as the form exists.
-      return res.status(200).json([]);
-    }
+    const total = await Response.countDocuments({ formId });
+    const totalPages = Math.ceil(total / limit);
 
-    res.status(200).json(responses);
+    return res.status(200).json({
+      data: responses || [],
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages
+      }
+    });
   } catch (error) {
     console.error('Error in getResponsesByFormId:', error);
     res.status(500).json({ message: error.message || 'Server error fetching responses for form.' });
+  }
+};
+
+export const deleteResponse = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid response ID format.' });
+    }
+    const deleted = await Response.findByIdAndDelete(id);
+    if (!deleted) return res.status(404).json({ message: 'Response not found.' });
+    res.status(200).json({ message: 'Response deleted successfully.' });
+  } catch (error) {
+    console.error('Error in deleteResponse:', error);
+    res.status(500).json({ message: error.message || 'Server error deleting response.' });
   }
 };
 

@@ -24,7 +24,7 @@ const App = () => {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/formbuilder/:id?" element={<FormBuilder />}/>
         <Route path="/form/:id" element={<FormViewer />} /> 
-        <Route path="/preview" element={<PreviewPage />}/>
+        <Route path="/preview/:id" element={<PreviewPage />}/>
         <Route path="/responses/form/:formId" element={<FormResponsesList />} />
         <Route path="/response/:id" element={<SingleResponsePreview />} />
       </Routes>

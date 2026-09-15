@@ -8,7 +8,9 @@ import {
   // getImage,
   deleteForm,
   getFormById,
-  updateForm // <-- NEW: Import the updateForm function
+  updateForm,
+  autosaveForm,
+  duplicateForm
 } from "../controllers/formController.js";
 import * as formController from "../controllers/formController.js";
 
@@ -19,8 +21,12 @@ const router = express.Router();
 router.post("/", protect, createForm);
 router.get("/", protect, getForms);
 
-// NEW: Route for updating a form by ID
-router.put("/:id", protect, updateForm); // <-- ADDED: This handles PUT requests for editing forms
+// NEW: Routes for updating forms
+router.put("/:id", protect, updateForm); 
+router.put("/:id/autosave", protect, autosaveForm);
+
+// Duplicate form
+router.post("/:id/duplicate", protect, duplicateForm);
 
 // // Image upload — make sure field name is "image"
 // router.post("/upload", upload.single("image"), formController.uploadImage);

@@ -128,8 +128,8 @@ export const getForms = async (req, res) => {
 // NEW FUNCTION: Update a form by ID
 export const updateForm = async (req, res) => {
   try {
-    const { id } = req.params; // Form ID from URL
-    const { title, description, questions, headerImage } = req.body; // Updated form data
+    const { id } = req.params; 
+    const { title, description, headerImage, settings, sections, questions } = req.body; 
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
         return res.status(400).json({ message: 'Invalid form ID format.' });
@@ -141,23 +141,57 @@ export const updateForm = async (req, res) => {
       return res.status(404).json({ message: 'Form not found.' });
     }
 
-    // Security Check: Ensure the user updating the form is the one who created it
     if (form.createdBy.toString() !== req.user._id.toString()) {
       return res.status(401).json({ message: 'User not authorized to update this form.' });
     }
 
-    // Update form fields
-    form.title = title;
-    form.description = description;
-    form.questions = questions; // Directly assign the updated questions array
-    form.headerImage = headerImage; // Assign the updated header image path
+    form.title = title !== undefined ? title : form.title;
+    form.description = description !== undefined ? description : form.description;
+    form.headerImage = headerImage !== undefined ? headerImage : form.headerImage;
+    form.settings = settings !== undefined ? settings : form.settings;
+    form.sections = sections !== undefined ? sections : form.sections;
+    form.questions = questions !== undefined ? questions : form.questions;
 
-    const updatedForm = await form.save(); // Save the updated form
+    const updatedForm = await form.save(); 
 
-    res.status(200).json(updatedForm); // Send back the updated form
+    res.status(200).json(updatedForm); 
   } catch (error) {
     console.error("Error in updateForm:", error);
     res.status(500).json({ message: error.message || "Server error updating form." });
+  }
+};
+
+// NEW FUNCTION: Autosave a form (essentially partial update)
+export const autosaveForm = async (req, res) => {
+  try {
+    const { id } = req.params; 
+    
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ message: 'Invalid form ID format.' });
+    }
+
+    let form = await Form.findById(id);
+    if (!form) {
+      return res.status(404).json({ message: 'Form not found.' });
+    }
+    if (form.createdBy.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ message: 'User not authorized to update this form.' });
+    }
+
+    // Apply partial updates
+    const updates = req.body;
+    if (updates.title !== undefined) form.title = updates.title;
+    if (updates.description !== undefined) form.description = updates.description;
+    if (updates.headerImage !== undefined) form.headerImage = updates.headerImage;
+    if (updates.settings !== undefined) form.settings = updates.settings;
+    if (updates.sections !== undefined) form.sections = updates.sections;
+    if (updates.questions !== undefined) form.questions = updates.questions;
+
+    const updatedForm = await form.save();
+    res.status(200).json(updatedForm);
+  } catch (error) {
+    console.error("Error in autosaveForm:", error);
+    res.status(500).json({ message: error.message || "Server error autosaving form." });
   }
 };
 
@@ -256,3 +290,43 @@ export const getFormById = async (req, res) => {
     res.status(500).json({ message: error.message || "Server error getting form by ID." });
   }
 };
+
+// Duplicate form
+export const duplicateForm = async (req, res) => {
+  try {
+    const original = await Form.findById(req.params.id).lean();
+    if (!original) {
+      return res.status(404).json({ message: 'Form not found.' });
+    }
+    if (original.createdBy.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ message: 'User not authorized to duplicate this form.' });
+    }
+
+    // Deep-clone without the mongo _id fields so Mongoose generates fresh ones
+    const { _id, createdAt, updatedAt, __v, ...rest } = original;
+
+    // Strip _id from questions and sections too
+    const cleanQuestions = (rest.questions || []).map(({ _id: qid, ...q }) => q);
+    const cleanSections = (rest.sections || []).map(({ _id: sid, ...s }) => s);
+
+    const duplicate = new Form({
+      ...rest,
+      title: `Copy of ${original.title}`,
+      questions: cleanQuestions,
+      sections: cleanSections,
+      createdBy: req.user._id,
+      // Reset status flags on the duplicate
+      settings: {
+        ...(rest.settings || {}),
+        acceptingResponses: true,
+        expiresAt: undefined,
+      },
+    });
+
+    const saved = await duplicate.save();
+    res.status(201).json(saved);
+  } catch (error) {
+    console.error("Error in duplicateForm:", error);
+    res.status(500).json({ message: error.message || "Server error duplicating form." });
+  }
+};
